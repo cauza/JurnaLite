@@ -25,13 +25,23 @@
                         </tr>
                     </thead>
                     <tbody class="text-gray-800 dark:text-gray-100">
-                        @php $saldo = 0; @endphp
+                        @php $saldo = $this->saldo_awal; @endphp
+                        <tr class="border-t bg-gray-100 dark:bg-gray-700">
+                            <td colspan="5" class="text-right font-bold">Saldo Awal</td>
+                            <td class="text-right font-bold">
+                                Rp {{ number_format($saldo, 0, ',', '.') }}
+                            </td>
+                        </tr>
                         @foreach ($entries as $entry)
                             @php
                                 $saldo += $entry->debit - $entry->credit;
                             @endphp
                             <tr class="border-t">
-                                <td class="py-1">{{ $entry->journalEntry->date ?? '-' }}</td>
+                                <td class="py-1">
+                                    <a href="{{ \App\Filament\Resources\JournalEntryResource::getUrl('edit', ['record' => $entry->journal_entry_id]) }}" class="text-blue-600 hover:underline">
+                                        {{ $entry->journalEntry->date ?? '-' }}
+                                    </a>
+                                </td>
                                 <td>{{ $entry->journalEntry->reference ?? '-' }}</td>
                                 <td>{{ $entry->journalEntry->description ?? '-' }}</td>
                                 <td class="text-right">Rp {{ number_format($entry->debit, 0, ',', '.') }}</td>

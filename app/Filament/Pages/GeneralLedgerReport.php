@@ -19,8 +19,11 @@ class GeneralLedgerReport extends Page
     public ?int $account_id = null;
     public ?string $start_date = null;
     public ?string $end_date = null;
+    public float $saldo_awal = 0;
+
 
     public Collection $entries;
+
 
     public function mount(): void
     {
@@ -64,16 +67,23 @@ class GeneralLedgerReport extends Page
 
     public function loadData(): void
     {
+        // Hitung saldo awal sebelum periode
+        $this->saldo_awal = JournalDetail::where('account_id', $this->account_id)
+            ->whereHas('journalEntry', function ($query) {
+                $query->where('date', '<', $this->start_date);
+            })
+            ->selectRaw('COALESCE(SUM(debit - credit), 0) as saldo')
+            ->value('saldo');
+
+        // Ambil transaksi dalam periode
         $this->entries = JournalDetail::with('journalEntry')
             ->where('account_id', $this->account_id)
             ->whereHas('journalEntry', function ($query) {
                 $query->whereBetween('date', [$this->start_date, $this->end_date]);
             })
             ->get()
-            ->sortBy(function ($entry) {
-                return $entry->journalEntry->date ?? '';
-            })
-            ->values(); // reset index
+            ->sortBy(fn($entry) => $entry->journalEntry->date ?? '')
+            ->values();
     }
 
     public function getAccountName(): string
